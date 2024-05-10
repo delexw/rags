@@ -19,7 +19,6 @@ from core.utils import (
     construct_mm_agent,
 )
 
-
 class ParamCache(BaseModel):
     """Cache for RAG agent builder.
 
@@ -35,6 +34,9 @@ class ParamCache(BaseModel):
     # system prompt
     system_prompt: Optional[str] = Field(
         default=None, description="System prompt for RAG agent."
+    )
+    welcome_prompt: Optional[str] = Field(
+        default=None, description=""
     )
     # data
     file_names: List[str] = Field(

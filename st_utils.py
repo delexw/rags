@@ -113,10 +113,11 @@ class CurrentSessionState(BaseModel):
     selected_cache: Optional[ParamCache]
     agent_builder: BaseRAGAgentBuilder
     cache: ParamCache
-    builder_agent: BaseAgent
+    builder_agent: BaseAgent = None
 
 
-def get_current_state() -> CurrentSessionState:
+@st.cache_resource
+def init() -> CurrentSessionState:
     """Get current state.
 
     This includes current state stored in session state and derived from it, e.g.
@@ -154,9 +155,7 @@ def get_current_state() -> CurrentSessionState:
 
     # set builder agent / agent builder
     if (
-        "builder_agent" not in st.session_state.keys()
-        or st.session_state.builder_agent is None
-        or "agent_builder" not in st.session_state.keys()
+        "agent_builder" not in st.session_state.keys()
         or st.session_state.agent_builder is None
     ):
         if (
@@ -164,7 +163,7 @@ def get_current_state() -> CurrentSessionState:
             and st.session_state.selected_cache is not None
         ):
             # create builder agent / tools from selected cache
-            builder_agent, agent_builder = load_meta_agent_and_tools(
+            agent_builder = load_meta_agent_and_tools(
                 cache=st.session_state.selected_cache,
                 agent_registry=st.session_state.agent_registry,
                 # NOTE: we will probably generalize this later into different
@@ -173,12 +172,12 @@ def get_current_state() -> CurrentSessionState:
             )
         else:
             # create builder agent / tools from new cache
-            builder_agent, agent_builder = load_meta_agent_and_tools(
+            agent_builder = load_meta_agent_and_tools(
                 agent_registry=st.session_state.agent_registry,
                 is_multimodal=get_is_multimodal(),
             )
 
-        st.session_state.builder_agent = builder_agent
+        st.session_state.builder_agent = None
         st.session_state.agent_builder = agent_builder
 
     return CurrentSessionState(
@@ -187,5 +186,4 @@ def get_current_state() -> CurrentSessionState:
         selected_cache=st.session_state.selected_cache,
         agent_builder=st.session_state.agent_builder,
         cache=st.session_state.agent_builder.cache,
-        builder_agent=st.session_state.builder_agent,
     )

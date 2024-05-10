@@ -1,8 +1,12 @@
 """Utils."""
-
-from llama_index.llms import OpenAI, Anthropic, Replicate
-from llama_index.llms.base import LLM
+from llama_index.chat_engine.condense_question import DEFAULT_TEMPLATE
+from llama_index.core import BaseQueryEngine
+from llama_index.indices.query.query_transform import HyDEQueryTransform, StepDecomposeQueryTransform
+from llama_index.llms import OpenAI, Anthropic, Replicate, OpenAILike
+from llama_index.llms.base import LLM, MessageRole
 from llama_index.llms.utils import resolve_llm
+from llama_index.memory import ChatMemoryBuffer
+from llama_index.query_engine import TransformQueryEngine, MultiStepQueryEngine
 from pydantic import BaseModel, Field
 import os
 from llama_index.agent import OpenAIAgent, ReActAgent
@@ -11,17 +15,17 @@ from llama_index import (
     VectorStoreIndex,
     SummaryIndex,
     ServiceContext,
-    Document,
+    Document, LLMPredictor, PromptTemplate, get_response_synthesizer,
 )
 from typing import List, cast, Optional
 from llama_index import SimpleDirectoryReader
 from llama_index.embeddings.utils import resolve_embed_model
 from llama_index.tools import QueryEngineTool, ToolMetadata
 from llama_index.agent.types import BaseAgent
-from llama_index.chat_engine.types import BaseChatEngine
+from llama_index.chat_engine.types import BaseChatEngine, ChatMode
 from llama_index.agent.react.formatter import ReActChatFormatter
 from llama_index.llms.openai_utils import is_function_calling_model
-from llama_index.chat_engine import CondensePlusContextChatEngine
+from llama_index.chat_engine import CondensePlusContextChatEngine, CondenseQuestionChatEngine
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Tuple, Any
 import streamlit as st
@@ -65,10 +69,10 @@ class RAGParams(BaseModel):
     )
     chunk_size: int = Field(default=1024, description="Chunk size for vector store.")
     embed_model: str = Field(
-        default="default", description="Embedding model to use (default is OpenAI)"
+        default=st.secrets.embedding_model_name, description="Embedding model to use (default is OpenAI)"
     )
     llm: str = Field(
-        default="gpt-4-1106-preview", description="LLM to use for summarization."
+        default=st.secrets.model_name, description="LLM to use for summarization."
     )
 
 
@@ -78,7 +82,11 @@ def _resolve_llm(llm_str: str) -> LLM:
     # see if there's a prefix
     # - if there isn't, assume it's an OpenAI model
     # - if there is, resolve it
+
+    return BUILDER_LLM
+
     tokens = llm_str.split(":")
+
     if len(tokens) == 1:
         os.environ["OPENAI_API_KEY"] = st.secrets.openai_key
         llm: LLM = OpenAI(model=llm_str)
@@ -99,9 +107,9 @@ def _resolve_llm(llm_str: str) -> LLM:
 
 
 def load_data(
-    file_names: Optional[List[str]] = None,
-    directory: Optional[str] = None,
-    urls: Optional[List[str]] = None,
+        file_names: Optional[List[str]] = None,
+        directory: Optional[str] = None,
+        urls: Optional[List[str]] = None,
 ) -> List[Document]:
     """Load data."""
     file_names = file_names or []
@@ -119,7 +127,7 @@ def load_data(
         reader = SimpleDirectoryReader(input_files=file_names)
         docs = reader.load_data()
     elif directory:
-        reader = SimpleDirectoryReader(input_dir=directory)
+        reader = SimpleDirectoryReader(input_dir=directory, recursive=True)
         docs = reader.load_data()
     elif urls:
         from llama_hub.web.simple_web.base import SimpleWebPageReader
@@ -134,11 +142,12 @@ def load_data(
 
 
 def load_agent(
-    tools: List,
-    llm: LLM,
-    system_prompt: str,
-    extra_kwargs: Optional[Dict] = None,
-    **kwargs: Any,
+        tools: List,
+        llm: LLM,
+        system_prompt: str,
+        service_context: ServiceContext = None,
+        extra_kwargs: Optional[Dict] = None,
+        **kwargs: Any,
 ) -> BaseChatEngine:
     """Load agent."""
     extra_kwargs = extra_kwargs or {}
@@ -170,20 +179,55 @@ def load_agent(
             )
         vector_index = cast(VectorStoreIndex, extra_kwargs["vector_index"])
         rag_params = cast(RAGParams, extra_kwargs["rag_params"])
+
+        # # https://docs.llamaindex.ai/en/stable/optimizing/advanced_retrieval/query_transformations/
+
+        # query_engine = vector_index.as_query_engine(
+        #     similarity_top_k=rag_params.top_k,
+        #     streaming=True
+        # )
+        # # https://docs.llamaindex.ai/en/stable/examples/query_transformations/HyDEQueryTransformDemo/
+        # ####### use HyDEQueryTransform single step
+        # hyde = HyDEQueryTransform(include_original=True,
+        #                           llm_predictor=LLMPredictor(llm=llm, system_prompt=system_prompt))
+        # transformed_query_engine = TransformQueryEngine(query_engine, hyde)
+
+        # ####### use StepDecomposeQueryTransform multi-step (for complex query, otherwise hit performance to get answer)
+        # step_decompose_transform = StepDecomposeQueryTransform(
+        #     llm_predictor=LLMPredictor(
+        #         llm=llm,
+        #         system_prompt=system_prompt
+        #     ), verbose=True)
+        # transformed_query_engine = MultiStepQueryEngine(
+        #     query_engine, query_transform=step_decompose_transform,
+        #     response_synthesizer=get_response_synthesizer(
+        #         service_context=service_context,
+        #         callback_manager=query_engine.callback_manager, # It requires to make streaming work
+        #         streaming=True
+        #     )
+        # )
+        #
+        # agent = CondenseQuestionChatEngine.from_defaults(
+        #     query_engine=transformed_query_engine,
+        #     service_context=service_context,
+        # )
+
         # use condense + context chat engine
         agent = CondensePlusContextChatEngine.from_defaults(
             vector_index.as_retriever(similarity_top_k=rag_params.top_k),
+            service_context,
+            system_prompt=system_prompt
         )
 
     return agent
 
 
 def load_meta_agent(
-    tools: List,
-    llm: LLM,
-    system_prompt: str,
-    extra_kwargs: Optional[Dict] = None,
-    **kwargs: Any,
+        tools: List,
+        llm: LLM,
+        system_prompt: str,
+        extra_kwargs: Optional[Dict] = None,
+        **kwargs: Any,
 ) -> BaseAgent:
     """Load meta agent.
 
@@ -216,29 +260,39 @@ def load_meta_agent(
 
 
 def construct_agent(
-    system_prompt: str,
-    rag_params: RAGParams,
-    docs: List[Document],
-    vector_index: Optional[VectorStoreIndex] = None,
-    additional_tools: Optional[List] = None,
+        system_prompt: str,
+        rag_params: RAGParams,
+        docs: List[Document],
+        vector_index: Optional[VectorStoreIndex] = None,
+        additional_tools: Optional[List] = None,
 ) -> Tuple[BaseChatEngine, Dict]:
     """Construct agent from docs / parameters / indices."""
+    print("constructing agent")
+
+    if system_prompt is None:
+        return "System prompt not set yet. Please set system prompt first."
+
     extra_info = {}
     additional_tools = additional_tools or []
 
     # first resolve llm and embedding model
+    print("resolve embed model")
     embed_model = resolve_embed_model(rag_params.embed_model)
+    print(embed_model)
     # llm = resolve_llm(rag_params.llm)
     # TODO: use OpenAI for now
     # llm = OpenAI(model=rag_params.llm)
     llm = _resolve_llm(rag_params.llm)
-
+    print(llm)
     # first let's index the data with the right parameters
     service_context = ServiceContext.from_defaults(
         chunk_size=rag_params.chunk_size,
         llm=llm,
         embed_model=embed_model,
+        system_prompt=system_prompt
     )
+
+    print(system_prompt)
 
     if vector_index is None:
         vector_index = VectorStoreIndex.from_documents(
@@ -252,9 +306,14 @@ def construct_agent(
     vector_query_engine = vector_index.as_query_engine(
         similarity_top_k=rag_params.top_k
     )
+
+    # https://docs.llamaindex.ai/en/stable/examples/query_transformations/HyDEQueryTransformDemo/
+    hyde = HyDEQueryTransform(include_original=True, llm_predictor=LLMPredictor(llm=llm))
+    hyde_query_engine = TransformQueryEngine(vector_query_engine, hyde)
+
     all_tools = []
     vector_tool = QueryEngineTool(
-        query_engine=vector_query_engine,
+        query_engine=hyde_query_engine,
         metadata=ToolMetadata(
             name="vector_tool",
             description=("Use this tool to answer any user question over any data."),
@@ -282,13 +341,12 @@ def construct_agent(
     all_tools.extend(additional_tools)
 
     # build agent
-    if system_prompt is None:
-        return "System prompt not set yet. Please set system prompt first."
 
     agent = load_agent(
         all_tools,
         llm=llm,
         system_prompt=system_prompt,
+        service_context=service_context,
         verbose=True,
         extra_kwargs={"vector_index": vector_index, "rag_params": rag_params},
     )
@@ -377,7 +435,7 @@ class MultimodalChatEngine(BaseChatEngine):
 
     @trace_method("chat")
     def chat(
-        self, message: str, chat_history: Optional[List[ChatMessage]] = None
+            self, message: str, chat_history: Optional[List[ChatMessage]] = None
     ) -> AGENT_CHAT_RESPONSE_TYPE:
         """Main chat interface."""
         # just return the top-k results
@@ -388,7 +446,7 @@ class MultimodalChatEngine(BaseChatEngine):
 
     @trace_method("chat")
     def stream_chat(
-        self, message: str, chat_history: Optional[List[ChatMessage]] = None
+            self, message: str, chat_history: Optional[List[ChatMessage]] = None
     ) -> StreamingAgentChatResponse:
         """Stream chat interface."""
         response = self._mm_query_engine.query(message)
@@ -403,7 +461,7 @@ class MultimodalChatEngine(BaseChatEngine):
 
     @trace_method("chat")
     async def achat(
-        self, message: str, chat_history: Optional[List[ChatMessage]] = None
+            self, message: str, chat_history: Optional[List[ChatMessage]] = None
     ) -> AGENT_CHAT_RESPONSE_TYPE:
         """Async version of main chat interface."""
         response = await self._mm_query_engine.aquery(message)
@@ -413,18 +471,18 @@ class MultimodalChatEngine(BaseChatEngine):
 
     @trace_method("chat")
     async def astream_chat(
-        self, message: str, chat_history: Optional[List[ChatMessage]] = None
+            self, message: str, chat_history: Optional[List[ChatMessage]] = None
     ) -> StreamingAgentChatResponse:
         """Async version of main chat interface."""
         return self.stream_chat(message, chat_history)
 
 
 def construct_mm_agent(
-    system_prompt: str,
-    rag_params: RAGParams,
-    docs: List[Document],
-    mm_vector_index: Optional[VectorStoreIndex] = None,
-    additional_tools: Optional[List] = None,
+        system_prompt: str,
+        rag_params: RAGParams,
+        docs: List[Document],
+        mm_vector_index: Optional[VectorStoreIndex] = None,
+        additional_tools: Optional[List] = None,
 ) -> Tuple[BaseChatEngine, Dict]:
     """Construct agent from docs / parameters / indices.
 
@@ -468,7 +526,7 @@ def construct_mm_agent(
 
 
 def get_image_and_text_nodes(
-    nodes: List[NodeWithScore],
+        nodes: List[NodeWithScore],
 ) -> Tuple[List[NodeWithScore], List[NodeWithScore]]:
     image_nodes = []
     text_nodes = []

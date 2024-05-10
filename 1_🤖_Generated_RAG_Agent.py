@@ -1,12 +1,19 @@
 """Streamlit page showing builder config."""
+import asyncio
+
+# Create a new event loop
+loop = asyncio.new_event_loop()
+
+# Set the event loop as the current event loop
+asyncio.set_event_loop(loop)
+
 import streamlit as st
-from st_utils import add_sidebar, get_current_state
+from st_utils import add_sidebar, init
 from core.utils import get_image_and_text_nodes
 from llama_index.schema import MetadataMode
 from llama_index.chat_engine.types import AGENT_CHAT_RESPONSE_TYPE
 from typing import Dict, Optional
 import pandas as pd
-
 
 ####################
 #### STREAMLIT #####
@@ -22,14 +29,14 @@ st.set_page_config(
 )
 st.title("Generated RAG Agent")
 
-current_state = get_current_state()
-add_sidebar()
+current_state = init()
+# add_sidebar()
 
 if (
-    "agent_messages" not in st.session_state.keys()
+        "agent_messages" not in st.session_state.keys()
 ):  # Initialize the chat messages history
     st.session_state.agent_messages = [
-        {"role": "assistant", "content": "Ask me a question!"}
+        {"role": "assistant", "content": current_state.cache.welcome_prompt}
     ]
 
 
@@ -60,7 +67,7 @@ def display_sources(response: AGENT_CHAT_RESPONSE_TYPE) -> None:
 
 
 def add_to_message_history(
-    role: str, content: str, extra: Optional[Dict] = None
+        role: str, content: str, extra: Optional[Dict] = None
 ) -> None:
     message = {"role": role, "content": str(content), "extra": extra}
     st.session_state.agent_messages.append(message)  # Add response to message history
@@ -94,7 +101,7 @@ if current_state.cache is not None and current_state.cache.agent is not None:
 
     # don't process selected for now
     if prompt := st.chat_input(
-        "Your question"
+            "Your question"
     ):  # Prompt for user input and save to chat history
         add_to_message_history("user", prompt)
         with st.chat_message("user"):
@@ -104,8 +111,8 @@ if current_state.cache is not None and current_state.cache.agent is not None:
     if st.session_state.agent_messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = agent.chat(str(prompt))
-                st.write(str(response))
+                response = agent.stream_chat(str(prompt))
+                st.write_stream(response.response_gen)
 
                 # display sources
                 # Multi-modal: check if image nodes are present

@@ -36,16 +36,41 @@ user query.
 
 """
 
+GEN_WELCOME_PROMPT_STR_LOCAL_LLM = """\
+Introduce yourself
+"""
+
+GEN_SYS_PROMPT_STR_LOCAL_LLM = """\
+please generate a system prompt for a chat bot for tasks that answer questions over provided documentations
+
+Make sure the system prompt obeys the following requirements:
+- Tells the bot to ALWAYS use the tone of Snoop Dogg. \
+- If users want to stop conversation, express appreciation to users. \
+- Does not reference a specific data source. \
+The data source is implicit in any queries to the bot, \
+and telling the bot to analyze a specific data source might confuse it given a \
+user query.
+"""
+
 gen_sys_prompt_messages = [
     ChatMessage(
         role="system",
-        content="You are helping to build a system prompt for another bot.",
+        content="You are helping to answer questions and queries as a chat bot",
     ),
-    ChatMessage(role="user", content=GEN_SYS_PROMPT_STR),
+    ChatMessage(role="user", content=GEN_SYS_PROMPT_STR_LOCAL_LLM),
+]
+
+gen_welcome_prompt_messages = [
+    ChatMessage(
+        role="system",
+        content="You are helping to answer questions and queries ALWAYS ALWAYS using the tone of Snoop Dogg.",
+    ),
+    ChatMessage(role="user", content=GEN_WELCOME_PROMPT_STR_LOCAL_LLM),
 ]
 
 GEN_SYS_PROMPT_TMPL = ChatPromptTemplate(gen_sys_prompt_messages)
 
+GEN_WELCOME_PROMPT_TMPL = ChatPromptTemplate(gen_welcome_prompt_messages)
 
 class BaseRAGAgentBuilder(ABC):
     """Base RAG Agent builder class."""
@@ -101,6 +126,23 @@ class RAGAgentBuilder(BaseRAGAgentBuilder):
         fmt_messages = GEN_SYS_PROMPT_TMPL.format_messages(task=task)
         response = llm.chat(fmt_messages)
         self._cache.system_prompt = response.message.content
+        print(self._cache.system_prompt)
+
+        return f"System prompt created: {response.message.content}"
+
+    def create_system_prompt_local_llm(self) -> str:
+        llm = BUILDER_LLM
+        fmt_messages = GEN_SYS_PROMPT_TMPL.format_messages()
+        response = llm.chat(fmt_messages)
+        self._cache.system_prompt = response.message.content
+
+        return f"System prompt created: {response.message.content}"
+
+    def create_welcome_prompt_local_llm(self) -> str:
+        llm = BUILDER_LLM
+        fmt_messages = GEN_WELCOME_PROMPT_TMPL.format_messages()
+        response = llm.chat(fmt_messages)
+        self._cache.welcome_prompt = response.message.content
 
         return f"System prompt created: {response.message.content}"
 

@@ -1,7 +1,7 @@
 """Loader agent."""
 
-from typing import List, cast, Optional
-from llama_index.tools import FunctionTool
+from typing import List, cast, Optional, Tuple
+# from llama_index.tools import FunctionTool
 from llama_index.agent.types import BaseAgent
 from core.builder_config import BUILDER_LLM
 from typing import Tuple, Callable
@@ -43,47 +43,47 @@ have available (e.g. "Do you want to set the number of documents to retrieve?")
 # please make sure to update the LLM above if you change the function below
 
 
-def _get_builder_agent_tools(agent_builder: RAGAgentBuilder) -> List[FunctionTool]:
-    """Get list of builder agent tools to pass to the builder agent."""
-    # see if metaphor api key is set, otherwise don't add web tool
-    # TODO: refactor this later
+# def _get_builder_agent_tools(agent_builder: RAGAgentBuilder) -> List[FunctionTool]:
+#     """Get list of builder agent tools to pass to the builder agent."""
+#     # see if metaphor api key is set, otherwise don't add web tool
+#     # TODO: refactor this later
+#
+#     if "metaphor_key" in st.secrets:
+#         fns: List[Callable] = [
+#             agent_builder.create_system_prompt,
+#             agent_builder.load_data,
+#             agent_builder.add_web_tool,
+#             agent_builder.get_rag_params,
+#             agent_builder.set_rag_params,
+#             agent_builder.create_agent,
+#         ]
+#     else:
+#         fns = [
+#             agent_builder.create_system_prompt,
+#             agent_builder.load_data,
+#             agent_builder.get_rag_params,
+#             agent_builder.set_rag_params,
+#             agent_builder.create_agent,
+#         ]
+#
+#     fn_tools: List[FunctionTool] = [FunctionTool.from_defaults(fn=fn) for fn in fns]
+#     return fn_tools
 
-    if "metaphor_key" in st.secrets:
-        fns: List[Callable] = [
-            agent_builder.create_system_prompt,
-            agent_builder.load_data,
-            agent_builder.add_web_tool,
-            agent_builder.get_rag_params,
-            agent_builder.set_rag_params,
-            agent_builder.create_agent,
-        ]
-    else:
-        fns = [
-            agent_builder.create_system_prompt,
-            agent_builder.load_data,
-            agent_builder.get_rag_params,
-            agent_builder.set_rag_params,
-            agent_builder.create_agent,
-        ]
 
-    fn_tools: List[FunctionTool] = [FunctionTool.from_defaults(fn=fn) for fn in fns]
-    return fn_tools
-
-
-def _get_mm_builder_agent_tools(
-    agent_builder: MultimodalRAGAgentBuilder,
-) -> List[FunctionTool]:
-    """Get list of builder agent tools to pass to the builder agent."""
-    fns: List[Callable] = [
-        agent_builder.create_system_prompt,
-        agent_builder.load_data,
-        agent_builder.get_rag_params,
-        agent_builder.set_rag_params,
-        agent_builder.create_agent,
-    ]
-
-    fn_tools: List[FunctionTool] = [FunctionTool.from_defaults(fn=fn) for fn in fns]
-    return fn_tools
+# def _get_mm_builder_agent_tools(
+#     agent_builder: MultimodalRAGAgentBuilder,
+# ) -> List[FunctionTool]:
+#     """Get list of builder agent tools to pass to the builder agent."""
+#     fns: List[Callable] = [
+#         agent_builder.create_system_prompt,
+#         agent_builder.load_data,
+#         agent_builder.get_rag_params,
+#         agent_builder.set_rag_params,
+#         agent_builder.create_agent,
+#     ]
+#
+#     fn_tools: List[FunctionTool] = [FunctionTool.from_defaults(fn=fn) for fn in fns]
+#     return fn_tools
 
 
 # define agent
@@ -91,25 +91,22 @@ def load_meta_agent_and_tools(
     cache: Optional[ParamCache] = None,
     agent_registry: Optional[AgentCacheRegistry] = None,
     is_multimodal: bool = False,
-) -> Tuple[BaseAgent, BaseRAGAgentBuilder]:
+) -> RAGAgentBuilder:
     """Load meta agent and tools."""
 
-    if is_multimodal:
-        agent_builder: BaseRAGAgentBuilder = MultimodalRAGAgentBuilder(
-            cache, agent_registry=agent_registry
-        )
-        fn_tools = _get_mm_builder_agent_tools(
-            cast(MultimodalRAGAgentBuilder, agent_builder)
-        )
-        builder_agent = load_meta_agent(
-            fn_tools, llm=BUILDER_LLM, system_prompt=RAG_BUILDER_SYS_STR, verbose=True
-        )
+    # think of this as tools for the agent to use
+    agent_builder = RAGAgentBuilder(cache, agent_registry=agent_registry)
+    if cache is not None:
+        print("Use existing chat bot agent")
+        return agent_builder
     else:
-        # think of this as tools for the agent to use
-        agent_builder = RAGAgentBuilder(cache, agent_registry=agent_registry)
-        fn_tools = _get_builder_agent_tools(agent_builder)
-        builder_agent = load_meta_agent(
-            fn_tools, llm=BUILDER_LLM, system_prompt=RAG_BUILDER_SYS_STR, verbose=True
-        )
+        print("Generating chat bot agent")
+        t = cast(RAGAgentBuilder, agent_builder)
+        t.create_welcome_prompt_local_llm()
+        t.create_system_prompt_local_llm()
+        t.load_data(directory="docs")
+        t.get_rag_params()
+        t.set_rag_params()
+        t.create_agent()
 
-    return builder_agent, agent_builder
+    return agent_builder
