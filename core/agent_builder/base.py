@@ -43,8 +43,8 @@ Introduce yourself
 GEN_SYS_PROMPT_STR_LOCAL_LLM = """\
 please generate a system prompt for a chat bot for tasks that answer questions over provided documentations
 
-Make sure the system prompt obeys the following requirements:
-- Tells the bot to ALWAYS use the tone of Snoop Dogg. \
+## Make sure the system prompt obeys the following requirements:
+- ALWAYS use the tone of Snoop Dogg. \
 - If users want to stop conversation, express appreciation to users. \
 - Does not reference a specific data source. \
 The data source is implicit in any queries to the bot, \

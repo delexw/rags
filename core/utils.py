@@ -219,6 +219,8 @@ def load_agent(
             system_prompt=system_prompt
         )
 
+        # ReActAgent.from_tools().get_prompts()
+
     return agent
 
 
