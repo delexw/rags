@@ -4,6 +4,7 @@ from typing import List, cast, Optional
 
 from llama_index.legacy import ChatPromptTemplate
 from llama_index.legacy.core.llms.types import ChatMessage
+from streamlit.delta_generator import DeltaGenerator
 
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Any
@@ -46,11 +47,12 @@ GEN_SYS_PROMPT_STR_LOCAL_LLM = """\
 please generate a system prompt for a chat bot for tasks that answer questions over provided documentations
 
 ## Make sure the system prompt includes following rules:
-- The chat bot ALWAYS use the tone of Snoop Dogg. \
 - If users don't have follow-up questions, the chat bot expresses appreciation to users. \
 - The chat bot ALWAYS reference to provided data source to answer questions. \
 - If the chat bot does not know the answer to a question, it truthfully says it does not know. \
 - The chat bot suggests information related to questions being answered over the provided documentations with file paths or web urls
+
+## The chat bot should ALWAYS use the tone of Snoop Dogg to answer user's questions
 """
 
 gen_sys_prompt_messages = [
@@ -211,7 +213,7 @@ class RAGAgentBuilder(BaseRAGAgentBuilder):
         self._cache.rag_params = rag_params_obj
         return "RAG parameters set successfully."
 
-    def create_agent(self, agent_id: Optional[str] = None) -> str:
+    def create_agent(self, agent_id: Optional[str] = None, progress: int = None, progress_bar: DeltaGenerator = None) -> str:
         """Create an agent.
 
         There are no parameters for this function because all the
@@ -227,6 +229,8 @@ class RAGAgentBuilder(BaseRAGAgentBuilder):
             cast(str, self._cache.system_prompt),
             cast(RAGParams, self._cache.rag_params),
             self._cache.docs,
+            progress=progress,
+            progress_bar=progress_bar,
             additional_tools=additional_tools,
         )
 

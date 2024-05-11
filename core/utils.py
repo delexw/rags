@@ -22,6 +22,9 @@ import os
 
 
 from typing import List, cast, Optional
+
+from streamlit.delta_generator import DeltaGenerator
+
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Tuple, Any
 import streamlit as st
@@ -32,6 +35,8 @@ from core.callback_manager import StreamlitFunctionsCallbackHandler
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal
 
 from typing import Generator
+
+from core.chunk_strategies import ChunkStrategies
 
 
 class RAGParams(BaseModel):
@@ -246,6 +251,8 @@ def construct_agent(
         system_prompt: str,
         rag_params: RAGParams,
         docs: List[Document],
+        progress: int = None,
+        progress_bar: DeltaGenerator = None,
         vector_index: Optional[VectorStoreIndex] = None,
         additional_tools: Optional[List] = None,
 ) -> Tuple[BaseChatEngine, Dict]:
@@ -259,14 +266,13 @@ def construct_agent(
     additional_tools = additional_tools or []
 
     # first resolve llm and embedding model
-    print("resolve embed model")
+    progress_bar.progress(progress + 5, text="Resolving embed model")
     embed_model = resolve_embed_model(rag_params.embed_model)
-    print(embed_model)
     # llm = resolve_llm(rag_params.llm)
     # TODO: use OpenAI for now
     # llm = OpenAI(model=rag_params.llm)
+    progress_bar.progress(progress + 10, text="Resolving LLM model")
     llm = _resolve_llm(rag_params.llm)
-    print(llm)
     # first let's index the data with the right parameters
     service_context = ServiceContext.from_defaults(
         chunk_size=rag_params.chunk_size,
@@ -278,9 +284,12 @@ def construct_agent(
     print(system_prompt)
 
     if vector_index is None:
-        vector_index = VectorStoreIndex.from_documents(
-            docs, service_context=service_context
-        )
+        progress_bar.progress(progress + 15, text="Constructing vector index")
+        vector_index = ChunkStrategies(
+            docs=docs,
+            service_context=service_context,
+            embed_model=embed_model
+        ).semantic_splitter_vector_index()
     else:
         pass
 

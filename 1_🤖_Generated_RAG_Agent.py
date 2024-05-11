@@ -1,15 +1,8 @@
 """Streamlit page showing builder config."""
-import asyncio
+
 
 from llama_index.legacy.chat_engine.types import AGENT_CHAT_RESPONSE_TYPE
 from llama_index.legacy.schema import MetadataMode
-
-# Create a new event loop
-loop = asyncio.new_event_loop()
-
-# Set the event loop as the current event loop
-asyncio.set_event_loop(loop)
-
 import streamlit as st
 from st_utils import add_sidebar, init
 from core.utils import get_image_and_text_nodes
@@ -20,7 +13,6 @@ import pandas as pd
 #### STREAMLIT #####
 ####################
 
-
 st.set_page_config(
     page_title="Generated RAG Agent",
     page_icon="🦙",
@@ -28,9 +20,10 @@ st.set_page_config(
     initial_sidebar_state="auto",
     menu_items=None,
 )
-st.title("Generated RAG Agent")
 
 current_state = init()
+
+st.title("Generated RAG Agent")
 
 
 # add_sidebar()
@@ -89,7 +82,7 @@ def display_messages() -> None:
         with st.chat_message(message["role"]):
             msg_type = message["msg_type"] if "msg_type" in message.keys() else "text"
             if msg_type == "text":
-                st.write(message["content"])
+                st.markdown(message["content"])
             elif msg_type == "info":
                 st.info(message["content"], icon="ℹ️")
             else:
