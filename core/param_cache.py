@@ -1,13 +1,9 @@
 """Param cache."""
-
+from llama_index.legacy import VectorStoreIndex, StorageContext, load_index_from_storage
+from llama_index.legacy.chat_engine.types import BaseChatEngine
+from llama_index.legacy.indices import MultiModalVectorStoreIndex
 from pydantic import BaseModel, Field
-from llama_index import (
-    VectorStoreIndex,
-    StorageContext,
-    load_index_from_storage,
-)
 from typing import List, cast, Optional
-from llama_index.chat_engine.types import BaseChatEngine
 from pathlib import Path
 import json
 import uuid
@@ -112,7 +108,6 @@ class ParamCache(BaseModel):
             persist_dir=str(Path(save_dir) / "storage")
         )
         if cache_dict["builder_type"] == "multimodal":
-            from llama_index.indices.multi_modal.base import MultiModalVectorStoreIndex
 
             vector_index: VectorStoreIndex = cast(
                 MultiModalVectorStoreIndex, load_index_from_storage(storage_context)

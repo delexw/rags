@@ -1,53 +1,36 @@
 """Utils."""
-from llama_index.chat_engine.condense_question import DEFAULT_TEMPLATE
-from llama_index.core import BaseQueryEngine
-from llama_index.indices.query.query_transform import HyDEQueryTransform, StepDecomposeQueryTransform
-from llama_index.llms import OpenAI, Anthropic, Replicate, OpenAILike
-from llama_index.llms.base import LLM, MessageRole
-from llama_index.llms.utils import resolve_llm
-from llama_index.memory import ChatMemoryBuffer
-from llama_index.query_engine import TransformQueryEngine, MultiStepQueryEngine
+from llama_index.legacy import Document, SimpleDirectoryReader, ServiceContext, VectorStoreIndex, SummaryIndex
+from llama_index.legacy.agent import OpenAIAgent, ReActAgent, ReActChatFormatter
+from llama_index.legacy.agent.react.prompts import REACT_CHAT_SYSTEM_HEADER
+from llama_index.legacy.agent.types import BaseAgent
+from llama_index.legacy.callbacks import CallbackManager, trace_method
+from llama_index.legacy.chat_engine.types import BaseChatEngine, ChatMode, AGENT_CHAT_RESPONSE_TYPE, AgentChatResponse, \
+    StreamingAgentChatResponse
+from llama_index.legacy.core.llms.types import ChatMessage, ChatResponse
+from llama_index.legacy.embeddings import resolve_embed_model
+from llama_index.legacy.indices import MultiModalVectorStoreIndex
+from llama_index.legacy.indices.multi_modal import MultiModalVectorIndexRetriever
+from llama_index.legacy.indices.query.query_transform import HyDEQueryTransform
+from llama_index.legacy.llms import LLM, OpenAI
+from llama_index.legacy.llms.openai_utils import is_function_calling_model
+from llama_index.legacy.query_engine import TransformQueryEngine, SimpleMultiModalQueryEngine
+from llama_index.legacy.readers import SimpleWebPageReader
+from llama_index.legacy.schema import NodeWithScore, ImageNode
+from llama_index.legacy.tools import QueryEngineTool, ToolMetadata
 from pydantic import BaseModel, Field
 import os
-from llama_index.agent import OpenAIAgent, ReActAgent
-from llama_index.agent.react.prompts import REACT_CHAT_SYSTEM_HEADER
-from llama_index import (
-    VectorStoreIndex,
-    SummaryIndex,
-    ServiceContext,
-    Document, LLMPredictor, PromptTemplate, get_response_synthesizer,
-)
+
+
 from typing import List, cast, Optional
-from llama_index import SimpleDirectoryReader
-from llama_index.embeddings.utils import resolve_embed_model
-from llama_index.tools import QueryEngineTool, ToolMetadata
-from llama_index.agent.types import BaseAgent
-from llama_index.chat_engine.types import BaseChatEngine, ChatMode
-from llama_index.agent.react.formatter import ReActChatFormatter
-from llama_index.llms.openai_utils import is_function_calling_model
-from llama_index.chat_engine import CondensePlusContextChatEngine, CondenseQuestionChatEngine
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Tuple, Any
 import streamlit as st
 
-from llama_index.callbacks import CallbackManager, trace_method
 from core.callback_manager import StreamlitFunctionsCallbackHandler
-from llama_index.schema import ImageNode, NodeWithScore
 
 ### BETA: Multi-modal
-from llama_index.indices.multi_modal.base import MultiModalVectorStoreIndex
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal
-from llama_index.indices.multi_modal.retriever import (
-    MultiModalVectorIndexRetriever,
-)
-from llama_index.llms import ChatMessage
-from llama_index.query_engine.multi_modal import SimpleMultiModalQueryEngine
-from llama_index.chat_engine.types import (
-    AGENT_CHAT_RESPONSE_TYPE,
-    StreamingAgentChatResponse,
-    AgentChatResponse,
-)
-from llama_index.llms.base import ChatResponse
+
 from typing import Generator
 
 
@@ -130,8 +113,6 @@ def load_data(
         reader = SimpleDirectoryReader(input_dir=directory, recursive=True)
         docs = reader.load_data()
     elif urls:
-        from llama_hub.web.simple_web.base import SimpleWebPageReader
-
         # use simple web page reader from llamahub
         loader = SimpleWebPageReader()
         docs = loader.load_data(urls=urls)
@@ -213,10 +194,10 @@ def load_agent(
         # )
 
         # use condense + context chat engine
-        agent = CondensePlusContextChatEngine.from_defaults(
-            vector_index.as_retriever(similarity_top_k=rag_params.top_k),
-            service_context,
-            system_prompt=system_prompt
+        agent = vector_index.as_chat_engine(
+            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            service_context=service_context,
+            system_prompt=system_prompt,
         )
 
         # ReActAgent.from_tools().get_prompts()
@@ -310,7 +291,7 @@ def construct_agent(
     )
 
     # https://docs.llamaindex.ai/en/stable/examples/query_transformations/HyDEQueryTransformDemo/
-    hyde = HyDEQueryTransform(include_original=True, llm_predictor=LLMPredictor(llm=llm))
+    hyde = HyDEQueryTransform(include_original=True, llm=llm)
     hyde_query_engine = TransformQueryEngine(vector_query_engine, hyde)
 
     all_tools = []
@@ -361,8 +342,6 @@ def get_web_agent_tool() -> QueryEngineTool:
     Wrap with our load and search tool spec.
 
     """
-    from llama_hub.tools.metaphor.base import MetaphorToolSpec
-
     # TODO: set metaphor API key
     metaphor_tool = MetaphorToolSpec(
         api_key=st.secrets.metaphor_key,
@@ -407,8 +386,7 @@ def get_tool_objects(tool_names: List[str]) -> List:
     tool_objs = []
     for tool_name in tool_names:
         if tool_name == "web_search":
-            # build web agent
-            tool_objs.append(get_web_agent_tool())
+            pass
         else:
             raise ValueError(f"Tool {tool_name} not recognized.")
 

@@ -1,8 +1,7 @@
 """Loader agent."""
-
+import time
 from typing import List, cast, Optional, Tuple
 # from llama_index.tools import FunctionTool
-from llama_index.agent.types import BaseAgent
 from core.builder_config import BUILDER_LLM
 from typing import Tuple, Callable
 import streamlit as st
@@ -101,12 +100,21 @@ def load_meta_agent_and_tools(
         return agent_builder
     else:
         print("Generating chat bot agent")
+
         t = cast(RAGAgentBuilder, agent_builder)
+        bar = st.progress(10, text="Generating welcome prompt...")
         t.create_welcome_prompt_local_llm()
+        bar.progress(20, text="Generating bot system prompt...")
         t.create_system_prompt_local_llm()
+        bar.progress(40, text="Loading data...")
         t.load_data(directory="docs")
+        bar.progress(60, text="Configuring RAG parameters...")
         t.get_rag_params()
         t.set_rag_params()
+        bar.progress(80, text="Creating RAG agent...")
         t.create_agent()
+        bar.progress(100, text="Done")
+        time.sleep(1)
+        bar.empty()
 
     return agent_builder

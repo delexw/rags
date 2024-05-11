@@ -1,4 +1,6 @@
 """Streamlit utils."""
+from llama_index.legacy.agent.types import BaseAgent
+
 from core.agent_builder.loader import (
     load_meta_agent_and_tools,
     AgentCacheRegistry,
@@ -11,7 +13,6 @@ from core.constants import (
 from typing import Optional, cast
 from pydantic import BaseModel
 
-from llama_index.agent.types import BaseAgent
 import streamlit as st
 
 
@@ -41,8 +42,8 @@ def update_selected_agent() -> None:
 def get_cached_is_multimodal() -> bool:
     """Get default multimodal st."""
     if (
-        "selected_cache" not in st.session_state.keys()
-        or st.session_state.selected_cache is None
+            "selected_cache" not in st.session_state.keys()
+            or st.session_state.selected_cache is None
     ):
         default_val = False
     else:
@@ -63,8 +64,8 @@ def add_builder_config() -> None:
     with st.expander("Builder Config (Advanced)"):
         # add a few options - openai api key, and
         if (
-            "selected_cache" not in st.session_state.keys()
-            or st.session_state.selected_cache is None
+                "selected_cache" not in st.session_state.keys()
+                or st.session_state.selected_cache is None
         ):
             is_locked = False
         else:
@@ -116,7 +117,6 @@ class CurrentSessionState(BaseModel):
     builder_agent: BaseAgent = None
 
 
-@st.cache_resource
 def init() -> CurrentSessionState:
     """Get current state.
 
@@ -141,8 +141,8 @@ def init() -> CurrentSessionState:
 
     # set selected cache if doesn't exist
     if (
-        "selected_cache" not in st.session_state.keys()
-        or st.session_state.selected_cache is None
+            "selected_cache" not in st.session_state.keys()
+            or st.session_state.selected_cache is None
     ):
         # update selected cache
         if st.session_state.selected_id is None:
@@ -155,12 +155,12 @@ def init() -> CurrentSessionState:
 
     # set builder agent / agent builder
     if (
-        "agent_builder" not in st.session_state.keys()
-        or st.session_state.agent_builder is None
+            "agent_builder" not in st.session_state.keys()
+            or st.session_state.agent_builder is None
     ):
         if (
-            "selected_cache" in st.session_state.keys()
-            and st.session_state.selected_cache is not None
+                "selected_cache" in st.session_state.keys()
+                and st.session_state.selected_cache is not None
         ):
             # create builder agent / tools from selected cache
             agent_builder = load_meta_agent_and_tools(

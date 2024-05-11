@@ -1,7 +1,13 @@
 """Multimodal agent builder."""
 
-from llama_index.llms import ChatMessage
 from typing import List, cast, Optional
+
+from llama_index.legacy.callbacks import trace_method
+from llama_index.legacy.chat_engine.types import BaseChatEngine, AGENT_CHAT_RESPONSE_TYPE, AgentChatResponse, \
+    StreamingAgentChatResponse
+from llama_index.legacy.core.llms.types import ChatMessage, ChatResponse
+from llama_index.legacy.query_engine import SimpleMultiModalQueryEngine
+
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Any
 import uuid
@@ -15,16 +21,7 @@ from core.utils import (
 from core.agent_builder.registry import AgentCacheRegistry
 from core.agent_builder.base import GEN_SYS_PROMPT_TMPL, BaseRAGAgentBuilder
 
-from llama_index.chat_engine.types import BaseChatEngine
 
-from llama_index.callbacks import trace_method
-from llama_index.query_engine.multi_modal import SimpleMultiModalQueryEngine
-from llama_index.chat_engine.types import (
-    AGENT_CHAT_RESPONSE_TYPE,
-    StreamingAgentChatResponse,
-    AgentChatResponse,
-)
-from llama_index.llms.base import ChatResponse
 from typing import Generator
 
 

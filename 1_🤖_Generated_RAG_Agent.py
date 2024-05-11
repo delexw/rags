@@ -1,6 +1,9 @@
 """Streamlit page showing builder config."""
 import asyncio
 
+from llama_index.legacy.chat_engine.types import AGENT_CHAT_RESPONSE_TYPE
+from llama_index.legacy.schema import MetadataMode
+
 # Create a new event loop
 loop = asyncio.new_event_loop()
 
@@ -10,8 +13,6 @@ asyncio.set_event_loop(loop)
 import streamlit as st
 from st_utils import add_sidebar, init
 from core.utils import get_image_and_text_nodes
-from llama_index.schema import MetadataMode
-from llama_index.chat_engine.types import AGENT_CHAT_RESPONSE_TYPE
 from typing import Dict, Optional
 import pandas as pd
 
@@ -47,15 +48,6 @@ def reset() -> None:
     current_state.cache.agent.reset()
     del st.session_state["agent_messages"]
     init_message()
-
-
-def create_bot():
-    reset()
-    init.clear()
-    code = """
-    <script>window.location.reload(true)</script>
-    """
-    st.markdown(code, unsafe_allow_html=True)
 
 
 def display_sources(response: AGENT_CHAT_RESPONSE_TYPE) -> None:
@@ -112,11 +104,6 @@ def display_messages() -> None:
 # if agent is created, then we can chat with it
 if current_state.cache is not None and current_state.cache.agent is not None:
     init_message()
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.button("Reset ChatBot", type="primary", on_click=reset, use_container_width=True)
-    with col2:
-        st.button("Create a ChatBot", type="primary", on_click=create_bot, use_container_width=True)
 
     st.info(f"Viewing config for agent: {current_state.cache.agent_id}", icon="ℹ️")
     agent = current_state.cache.agent
@@ -125,9 +112,11 @@ if current_state.cache is not None and current_state.cache.agent is not None:
     display_messages()
 
     # don't process selected for now
-    if prompt := st.chat_input(
-            "Your question"
-    ):  # Prompt for user input and save to chat history
+    prompt = st.chat_input(
+        "Your question"
+    )
+    if prompt:  # Prompt for user input and save to chat history
+        st.button("Reset ChatBot", type="primary", on_click=reset, use_container_width=True)
         add_to_message_history("user", prompt)
         with st.chat_message("user"):
             st.write(prompt)

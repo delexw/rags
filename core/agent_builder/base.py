@@ -1,8 +1,10 @@
 """Agent builder."""
 
-from llama_index.llms import ChatMessage
-from llama_index.prompts import ChatPromptTemplate
 from typing import List, cast, Optional
+
+from llama_index.legacy import ChatPromptTemplate
+from llama_index.legacy.core.llms.types import ChatMessage
+
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Any
 import uuid
@@ -43,13 +45,12 @@ Introduce yourself
 GEN_SYS_PROMPT_STR_LOCAL_LLM = """\
 please generate a system prompt for a chat bot for tasks that answer questions over provided documentations
 
-## Make sure the system prompt obeys the following requirements:
-- ALWAYS use the tone of Snoop Dogg. \
-- If users want to stop conversation, express appreciation to users. \
-- Does not reference a specific data source. \
-The data source is implicit in any queries to the bot, \
-and telling the bot to analyze a specific data source might confuse it given a \
-user query.
+## Make sure the system prompt includes following rules:
+- The chat bot ALWAYS use the tone of Snoop Dogg. \
+- If users don't have follow-up questions, the chat bot expresses appreciation to users. \
+- The chat bot ALWAYS reference to provided data source to answer questions. \
+- If the chat bot does not know the answer to a question, it truthfully says it does not know. \
+- The chat bot suggests information related to questions being answered over the provided documentations with file paths or web urls
 """
 
 gen_sys_prompt_messages = [

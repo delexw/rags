@@ -1,8 +1,8 @@
 """Streaming callback manager."""
-from llama_index.callbacks.base_handler import BaseCallbackHandler
-from llama_index.callbacks.schema import CBEventType
-
 from typing import Optional, Dict, Any, List, Callable
+
+from llama_index.legacy import BaseCallbackHandler
+from llama_index.legacy.callbacks import CBEventType
 
 STORAGE_DIR = "./storage"  # directory to cache the generated index
 DATA_DIR = "./data"  # directory containing the documents to index
