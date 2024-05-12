@@ -200,7 +200,7 @@ def load_agent(
 
         # use condense + context chat engine
         agent = vector_index.as_chat_engine(
-            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
+            chat_mode=ChatMode.CONTEXT,
             service_context=service_context,
             system_prompt=system_prompt,
         )
