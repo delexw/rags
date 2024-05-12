@@ -114,14 +114,19 @@ See our launch blog post [here](https://blog.llamaindex.ai/introducing-rags-your
 
 ## Roadmap
 
-1. Local LLM and Embedding integration ✅
-2. Test generate system prompt by LLM to scope chat bot with required context to answer follow-up questions context ✅
-3. Test ChatMode.CONTEXT vs ChatMode.CONDENSE_PLUS_CONTEXT ✅
-4. Test semantic splitter chunker vs sentence splitter chunker ✅
-5. Test [BERT Embedding modal](https://huggingface.co/BAAI/bge-small-en-v1.5) vs [ColBERT Embedding modal](https://huggingface.co/colbert-ir/colbertv2.0) ✅
-6. [Test Graph Database (open source)](https://medium.aiplanet.com/implement-rag-with-knowledge-graph-and-llama-index-6a3370e93cdd)
-7. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
-8. Test Re-rank
-9. Test RctAgent tools calling
-10. [Test Chunking optimization](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
-11. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
+1. Local LLM (Phi 3 instruct/llama 8B instruct) and Embedding integration (OpenAI-compatible API by LM Studio and Huggingface Embedding) ✅
+2. Test data load from local dictionary ✅
+3. Test generate system prompt by LLM to scope chat bot with required context to answer follow-up questions context ✅
+4. Test Chat streaming output (LLM needs to support) ✅
+5. Test ChatMode.CONTEXT vs ChatMode.CONDENSE_PLUS_CONTEXT ✅
+6. Test semantic splitter chunker vs sentence splitter chunker ✅
+7. Test [BERT Embedding modal](https://huggingface.co/BAAI/bge-small-en-v1.5) vs [ColBERT Embedding modal](https://huggingface.co/colbert-ir/colbertv2.0) ✅
+8. [Visualize Vector Embeddings](https://medium.com/@sarmadafzalj/visualize-vector-embeddings-in-a-rag-system-89d0c44a3be4)
+9. [Test Graph Database (open source)](https://medium.aiplanet.com/implement-rag-with-knowledge-graph-and-llama-index-6a3370e93cdd)
+10. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
+11. Test Re-rank
+12. [Test Observability and Evaluation](https://docs.llamaindex.ai/en/stable/module_guides/observability/)
+13. Test RctAgent tools calling
+14. [Test Chunking optimization](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
+15. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
+16. Try [AutoRAG](https://marker-inc-korea.github.io/AutoRAG/) to optimize the RAG pipeline

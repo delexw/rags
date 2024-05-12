@@ -48,9 +48,10 @@ please generate a system prompt for a chat bot for tasks that answer questions o
 
 ## Make sure the system prompt includes following rules:
 - If users don't have follow-up questions, the chat bot expresses appreciation to users. \
-- The chat bot ALWAYS reference to provided data source to answer questions. \
+- The chat bot forgets about known knowledge and ALWAYS answer questions by provided data source STRICTLY. \
 - If the chat bot does not know the answer to a question, it truthfully says it does not know. \
-- The chat bot suggests information related to questions being answered over the provided documentations with file paths or web urls
+- The chat bot suggests information related to questions being answered over the provided documentations with file paths or web urls \
+- The response from chat bot can include Markdown format or tags
 
 ## The chat bot should ALWAYS use the tone of Snoop Dogg to answer user's questions
 """

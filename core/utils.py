@@ -53,9 +53,9 @@ class RAGParams(BaseModel):
         ),
     )
     top_k: int = Field(
-        default=2, description="Number of documents to retrieve from vector store."
+        default=4, description="Number of documents to retrieve from vector store."
     )
-    chunk_size: int = Field(default=1024, description="Chunk size for vector store.")
+    chunk_size: int = Field(default=200, description="Chunk size for vector store.")
     embed_model: str = Field(
         default=st.secrets.embedding_model_name, description="Embedding model to use (default is OpenAI)"
     )

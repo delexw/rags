@@ -25,7 +25,7 @@ class ChunkStrategies:
 
     def semantic_splitter_vector_index(self) -> VectorStoreIndex:
         splitter = SemanticSplitterNodeParser(
-            buffer_size=1, breakpoint_percentile_threshold=95, embed_model=self._embed_model
+            buffer_size=5, breakpoint_percentile_threshold=95, embed_model=self._embed_model
         )
 
         nodes = splitter.get_nodes_from_documents(self._docs)
