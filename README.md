@@ -110,3 +110,18 @@ Running into issues? Please file a GitHub issue or join our [Discord](https://di
 This app was built with [LlamaIndex Python](https://github.com/run-llama/llama_index).
 
 See our launch blog post [here](https://blog.llamaindex.ai/introducing-rags-your-personalized-chatgpt-experience-over-your-data-2b9d140769b1).
+
+
+## Roadmap
+
+1. Local LLM and Embedding integration ✅
+2. Test generate system prompt by LLM to scope chat bot with required context to answer follow-up questions context ✅
+3. Test ChatMode.CONTEXT vs ChatMode.CONDENSE_PLUS_CONTEXT ✅
+4. Test semantic splitter chunker vs sentence splitter chunker ✅
+5. Test [BERT Embedding modal](https://huggingface.co/BAAI/bge-small-en-v1.5) vs [ColBERT Embedding modal](https://huggingface.co/colbert-ir/colbertv2.0) ✅
+6. [Test Graph Database (open source)](https://medium.aiplanet.com/implement-rag-with-knowledge-graph-and-llama-index-6a3370e93cdd)
+7. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
+8. Test Re-rank
+9. Test RctAgent tools calling
+10. [Test Chunking optimization](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
+11. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
