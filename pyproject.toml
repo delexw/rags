@@ -28,6 +28,9 @@ llama-index-llms-openai = "^0.1.18"
 llama-index-embeddings-huggingface = "^0.2.0"
 llama-hub = "^0.0.79.post1"
 docx2txt = "^0.8"
+llama-index-vector-stores-weaviate = "^1.0.0"
+weaviate-client = "^4.6.0"
+open-clip-torch = "^2.24.0"
 
 [tool.poetry.dev-dependencies]
 # pytest = "7.2.1"

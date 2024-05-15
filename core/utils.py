@@ -1,5 +1,6 @@
 """Utils."""
-from llama_index.legacy import Document, SimpleDirectoryReader, ServiceContext, VectorStoreIndex, SummaryIndex
+from llama_index.legacy import Document, SimpleDirectoryReader, ServiceContext, VectorStoreIndex, SummaryIndex, \
+    StorageContext
 from llama_index.legacy.agent import OpenAIAgent, ReActAgent, ReActChatFormatter
 from llama_index.legacy.agent.react.prompts import REACT_CHAT_SYSTEM_HEADER
 from llama_index.legacy.agent.types import BaseAgent
@@ -17,6 +18,7 @@ from llama_index.legacy.query_engine import TransformQueryEngine, SimpleMultiMod
 from llama_index.legacy.readers import SimpleWebPageReader
 from llama_index.legacy.schema import NodeWithScore, ImageNode
 from llama_index.legacy.tools import QueryEngineTool, ToolMetadata
+from llama_index.legacy.vector_stores.types import VectorStoreQueryMode, MetadataFilters, MetadataFilter
 from pydantic import BaseModel, Field
 import os
 
@@ -37,6 +39,7 @@ from llama_index.multi_modal_llms.openai import OpenAIMultiModal
 from typing import Generator
 
 from core.chunk_strategies import ChunkStrategies
+from core.vector_store import VectorStore
 
 
 class RAGParams(BaseModel):
@@ -200,10 +203,13 @@ def load_agent(
 
         # use condense + context chat engine
         agent = vector_index.as_chat_engine(
-            chat_mode=ChatMode.CONTEXT,
+            chat_mode=ChatMode.CONDENSE_PLUS_CONTEXT,
             service_context=service_context,
             system_prompt=system_prompt,
+            filters=MetadataFilters(
+                filters=[MetadataFilter(key="_node_type", value="TextNode")]) # for weaiate db
         )
+
 
         # ReActAgent.from_tools().get_prompts()
 
@@ -285,10 +291,14 @@ def construct_agent(
 
     if vector_index is None:
         progress_bar.progress(progress + 15, text="Constructing vector index")
+        storage_context = StorageContext.from_defaults(
+            vector_store=VectorStore().weaviate_store(),
+        )
         vector_index = ChunkStrategies(
             docs=docs,
             service_context=service_context,
-            embed_model=embed_model
+            embed_model=embed_model,
+            storage_context=storage_context
         ).semantic_splitter_vector_index()
     else:
         pass
@@ -296,7 +306,8 @@ def construct_agent(
     extra_info["vector_index"] = vector_index
 
     vector_query_engine = vector_index.as_query_engine(
-        similarity_top_k=rag_params.top_k
+        similarity_top_k=rag_params.top_k,
+        image_similarity_top_k=rag_params.top_k
     )
 
     # https://docs.llamaindex.ai/en/stable/examples/query_transformations/HyDEQueryTransformDemo/

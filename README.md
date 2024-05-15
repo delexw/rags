@@ -114,19 +114,27 @@ See our launch blog post [here](https://blog.llamaindex.ai/introducing-rags-your
 
 ## Roadmap
 
-1. Local LLM (Phi 3 instruct/llama 8B instruct) and Embedding integration (OpenAI-compatible API by LM Studio and Huggingface Embedding) ✅
-2. Test data load from local dictionary ✅
-3. Test generate system prompt by LLM to scope chat bot with required context to answer follow-up questions context ✅
-4. Test Chat streaming output (LLM needs to support) ✅
-5. Test ChatMode.CONTEXT vs ChatMode.CONDENSE_PLUS_CONTEXT ✅
-6. Test semantic splitter chunker vs sentence splitter chunker ✅
-7. Test [BERT Embedding modal](https://huggingface.co/BAAI/bge-small-en-v1.5) vs [ColBERT Embedding modal](https://huggingface.co/colbert-ir/colbertv2.0) ✅
-8. [Visualize Vector Embeddings](https://medium.com/@sarmadafzalj/visualize-vector-embeddings-in-a-rag-system-89d0c44a3be4)
-9. [Test Graph Database (open source)](https://medium.aiplanet.com/implement-rag-with-knowledge-graph-and-llama-index-6a3370e93cdd)
-10. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
-11. Test Re-rank
-12. [Test Observability and Evaluation](https://docs.llamaindex.ai/en/stable/module_guides/observability/)
-13. Test RctAgent tools calling
-14. [Test Chunking optimization](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
-15. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
-16. Try [AutoRAG](https://marker-inc-korea.github.io/AutoRAG/) to optimize the RAG pipeline
+1. ✅Local LLM (Phi 3 instruct/llama 8B instruct) and Embedding integration (OpenAI-compatible API by LM Studio and Huggingface Embedding) 
+2. ✅Test data load from local dictionary 
+3. ✅Test generate system prompt by LLM to scope chat bot with required context to answer follow-up questions context 
+4. ✅Test Chat streaming output (LLM needs to support)
+5. ✅Test ChatMode.CONTEXT vs ChatMode.CONDENSE_PLUS_CONTEXT
+6. ✅Test semantic splitter chunker vs sentence splitter chunker
+7. ✅Test [BERT Embedding modal](https://huggingface.co/BAAI/bge-small-en-v1.5) vs [ColBERT Embedding modal](https://huggingface.co/colbert-ir/colbertv2.0) 
+8. ✅[Test manually optimize chunk size and top k](https://ai.plainenglish.io/investigating-chunk-size-on-semantic-results-b465867d8ca1) (Good search accuracy for articles not code)
+9. ✅ Test Vector Database such as weaviate and chromadb
+    - ✅ Metadata filter image files from weaviate (get right answer from vector db without image vectors pollution)
+    - ✅ small or large chunksize * top_N weaviate impact (not saw differences maybe something I am wrong not properly)
+10. Text multimodel embedding for texts and images 
+    - chromadb with embedding functions and same multimodel embedding configured 
+    - weaviate with SimpleMultiModalQueryEngine
+11. [Test Knowledge Graph Search for relatedness vs Vector Search for similarity](https://medium.aiplanet.com/implement-rag-with-knowledge-graph-and-llama-index-6a3370e93cdd)
+12. [Test Hybrid Search](https://medium.com/llamaindex-blog/llamaindex-enhancing-retrieval-performance-with-alpha-tuning-in-hybrid-search-in-rag-135d0c9b8a00)
+13. [Visualize Vector Embeddings](https://medium.com/@sarmadafzalj/visualize-vector-embeddings-in-a-rag-system-89d0c44a3be4)
+14. Test RctAgent tools calling
+15. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
+16. Test Re-rank
+17. [Test Observability and Evaluation](https://docs.llamaindex.ai/en/stable/module_guides/observability/)
+18. [Test Chunking optimization dynamically (Pre-retrival)](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
+19. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
+20. Try [AutoRAG](https://marker-inc-korea.github.io/AutoRAG/) to optimize the RAG pipeline
