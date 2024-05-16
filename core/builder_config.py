@@ -23,7 +23,7 @@ from llama_index.legacy.llms import OpenAILike
 BUILDER_LLM = OpenAILike(
     api_key=st.secrets.openai_key,
     api_base=st.secrets.openai_base_url,
-    temperature=0.5,
+    temperature=1,
     timeout=3600,
     model=st.secrets.model_name,
     is_chat_model=True,

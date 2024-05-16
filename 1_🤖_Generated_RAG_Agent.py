@@ -4,6 +4,8 @@
 from llama_index.legacy.chat_engine.types import AGENT_CHAT_RESPONSE_TYPE
 from llama_index.legacy.schema import MetadataMode
 import streamlit as st
+from streamlit_pills import pills
+
 from st_utils import add_sidebar, init
 from core.utils import get_image_and_text_nodes
 from typing import Dict, Optional
@@ -14,7 +16,7 @@ import pandas as pd
 ####################
 
 st.set_page_config(
-    page_title="Generated RAG Agent",
+    page_title="Generated RAG \"Agent\"",
     page_icon="🦙",
     layout="centered",
     initial_sidebar_state="auto",
@@ -23,7 +25,7 @@ st.set_page_config(
 
 current_state = init()
 
-st.title("Generated RAG Agent")
+st.title("Generated RAG \"Agent\"")
 
 
 # add_sidebar()
@@ -36,11 +38,14 @@ def init_message() -> None:
             {"role": "assistant", "content": current_state.cache.welcome_prompt}
         ]
 
+def reset_message() -> None:
+    if "agent_messages" in st.session_state.keys():
+        del st.session_state["agent_messages"]
+    init_message()
 
 def reset() -> None:
     current_state.cache.agent.reset()
-    del st.session_state["agent_messages"]
-    init_message()
+    reset_message()
 
 
 def display_sources(response: AGENT_CHAT_RESPONSE_TYPE) -> None:
@@ -96,11 +101,23 @@ def display_messages() -> None:
 
 # if agent is created, then we can chat with it
 if current_state.cache is not None and current_state.cache.agent is not None:
-    init_message()
-
     st.info(f"Viewing config for agent: {current_state.cache.agent_id}", icon="ℹ️")
+
+    st.button("Reset ChatBot", type="primary", on_click=reset, use_container_width=True)
+
+    selected = pills(
+        "Outline your question!",
+        [
+            "How does Oxalis22 generate useful search?",
+            "Tell me about systems",
+        ],
+        clearable=True,
+        index=st.session_state.selected_pill_id,
+    )
+
     agent = current_state.cache.agent
 
+    reset_message()
     # display prior messages
     display_messages()
 
@@ -108,17 +125,19 @@ if current_state.cache is not None and current_state.cache.agent is not None:
     prompt = st.chat_input(
         "Your question"
     )
-    if prompt:  # Prompt for user input and save to chat history
-        st.button("Reset ChatBot", type="primary", on_click=reset, use_container_width=True)
-        add_to_message_history("user", prompt)
+
+    question = prompt if prompt is not None else selected
+
+    if prompt or selected:  # Prompt for user input and save to chat history
+        add_to_message_history("user", question)
         with st.chat_message("user"):
-            st.write(prompt)
+            st.write(question)
 
     # If last message is not from assistant, generate a new response
     if st.session_state.agent_messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = agent.stream_chat(str(prompt))
+                response = agent.stream_chat(str(question))
                 st.write_stream(response.response_gen)
 
                 # display sources

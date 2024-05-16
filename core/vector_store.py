@@ -1,10 +1,14 @@
-from llama_index.legacy.vector_stores import WeaviateVectorStore, ChromaVectorStore
-from core.constants import CHROMADB_CACHE_DIR
+from typing import cast
 
+from llama_index.legacy.vector_stores import WeaviateVectorStore, ChromaVectorStore
+
+from core.constants import CHROMADB_CACHE_DIR
+import streamlit as st
 
 class VectorStore:
     def weaviate_store(self):
         import weaviate
+        from weaviate import Client
         from weaviate import EmbeddedOptions
 
         client = weaviate.Client("http://localhost:8080")

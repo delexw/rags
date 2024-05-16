@@ -139,6 +139,13 @@ def init() -> CurrentSessionState:
     if "selected_id" not in st.session_state.keys():
         st.session_state.selected_id = None
 
+    if "weaviate_client" not in st.session_state.keys():
+            st.session_state.weaviate_client = None
+
+    if "selected_pill_id" not in st.session_state.keys():
+            st.session_state.selected_pill_id = None
+
+
     # set selected cache if doesn't exist
     if (
             "selected_cache" not in st.session_state.keys()
