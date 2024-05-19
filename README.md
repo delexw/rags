@@ -134,10 +134,11 @@ See our launch blog post [here](https://blog.llamaindex.ai/introducing-rags-your
 14. [Test Knowledge Graph Search for relatedness vs Vector Search for similarity](https://medium.aiplanet.com/implement-rag-with-knowledge-graph-and-llama-index-6a3370e93cdd)
 15. [Test Hybrid Search](https://medium.com/llamaindex-blog/llamaindex-enhancing-retrieval-performance-with-alpha-tuning-in-hybrid-search-in-rag-135d0c9b8a00)
 16. [Visualize Vector Embeddings](https://medium.com/@sarmadafzalj/visualize-vector-embeddings-in-a-rag-system-89d0c44a3be4)
-17. Test RctAgent tools calling
-18. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
-19. Test Re-rank
-20. [Test Observability and Evaluation](https://docs.llamaindex.ai/en/stable/module_guides/observability/)
-21. [Test Chunking optimization dynamically (Pre-retrival)](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
-22. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
-23. Try [AutoRAG](https://marker-inc-korea.github.io/AutoRAG/) to optimize the RAG pipeline
+17. [Test github repo loader rather than local docs ](https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/)
+18. Test Re-rank
+19. [Test RAG fusion](https://docs.llamaindex.ai/en/stable/examples/low_level/fusion_retriever/), also [repo](https://github.com/Raudaschl/rag-fusion)
+20. Test RctAgent tools calling
+21. [Test Observability and Evaluation](https://docs.llamaindex.ai/en/stable/module_guides/observability/)
+22. [Test Chunking optimization dynamically (Pre-retrival)](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b) 
+23. [Other Advanced RAG](https://medium.com/llamaindex-blog/a-cheat-sheet-and-some-recipes-for-building-advanced-rag-803a9d94c41b)
+24. Try [AutoRAG](https://marker-inc-korea.github.io/AutoRAG/) to optimize the RAG pipeline

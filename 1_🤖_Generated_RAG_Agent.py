@@ -16,7 +16,7 @@ import pandas as pd
 ####################
 
 st.set_page_config(
-    page_title="Generated RAG \"Agent\"",
+    page_title="Artificial Intelligence Disability \"Agent\"",
     page_icon="🦙",
     layout="centered",
     initial_sidebar_state="auto",
@@ -25,7 +25,7 @@ st.set_page_config(
 
 current_state = init()
 
-st.title("Generated RAG \"Agent\"")
+st.title("Artificial Intelligence Disability \"Agent\"")
 
 
 # add_sidebar()

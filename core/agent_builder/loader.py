@@ -110,7 +110,7 @@ def load_meta_agent_and_tools(
         t.get_rag_params()
         t.set_rag_params()
         bar.progress(60, text="Creating RAG agent...")
-        t.create_agent(progress=60, progress_bar=bar)
+        t.create_agent()
         bar.progress(80, text="Generating welcome prompt...")
         t.create_welcome_prompt_local_llm()
         bar.progress(100, text="Done")

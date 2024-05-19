@@ -25,11 +25,9 @@ import os
 
 from typing import List, cast, Optional
 
-from streamlit.delta_generator import DeltaGenerator
-
-from core.builder_config import BUILDER_LLM
+from core.builder_config import BUILDER_LLM, config
 from typing import Dict, Tuple, Any
-import streamlit as st
+
 
 from core.callback_manager import StreamlitFunctionsCallbackHandler
 
@@ -60,10 +58,10 @@ class RAGParams(BaseModel):
     )
     chunk_size: int = Field(default=1024, description="Chunk size for vector store.")
     embed_model: str = Field(
-        default=st.secrets.embedding_model_name, description="Embedding model to use (default is OpenAI)"
+        default=config["embedding_model_name"], description="Embedding model to use (default is OpenAI)"
     )
     llm: str = Field(
-        default=st.secrets.model_name, description="LLM to use for summarization."
+        default=config["model_name"], description="LLM to use for summarization."
     )
 
 
@@ -257,8 +255,6 @@ def construct_agent(
         system_prompt: str,
         rag_params: RAGParams,
         docs: List[Document],
-        progress: int = None,
-        progress_bar: DeltaGenerator = None,
         vector_index: Optional[VectorStoreIndex] = None,
         additional_tools: Optional[List] = None,
 ) -> Tuple[BaseChatEngine, Dict]:
@@ -272,12 +268,10 @@ def construct_agent(
     additional_tools = additional_tools or []
 
     # first resolve llm and embedding model
-    progress_bar.progress(progress + 5, text="Resolving embed model")
     embed_model = resolve_embed_model(rag_params.embed_model)
     # llm = resolve_llm(rag_params.llm)
     # TODO: use OpenAI for now
     # llm = OpenAI(model=rag_params.llm)
-    progress_bar.progress(progress + 10, text="Resolving LLM model")
     llm = _resolve_llm(rag_params.llm)
     # first let's index the data with the right parameters
     service_context = ServiceContext.from_defaults(
@@ -287,10 +281,7 @@ def construct_agent(
         system_prompt=system_prompt
     )
 
-    print(system_prompt)
-
     if vector_index is None:
-        progress_bar.progress(progress + 15, text="Constructing vector index")
         storage_context = StorageContext.from_defaults(
             vector_store=VectorStore().weaviate_store(),
         )

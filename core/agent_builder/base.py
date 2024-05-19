@@ -4,7 +4,6 @@ from typing import List, cast, Optional
 
 from llama_index.legacy import ChatPromptTemplate
 from llama_index.legacy.core.llms.types import ChatMessage
-from streamlit.delta_generator import DeltaGenerator
 
 from core.builder_config import BUILDER_LLM
 from typing import Dict, Any
@@ -13,7 +12,7 @@ from core.constants import AGENT_CACHE_DIR
 from abc import ABC, abstractmethod
 
 from core.param_cache import ParamCache, RAGParams
-from core.prompts import TEST_1, BASE, BASE_2
+from core.prompts import SNOOPY_1, SNOOPY_2, I_GOT_IT
 from core.utils import (
     load_data,
     get_tool_objects,
@@ -55,19 +54,18 @@ please generate a system prompt for a chat bot for tasks that answer questions o
 - The chat bot suggests information related to questions being answered over the provided documentations with file paths or web urls \
 - The response from chat bot can include Markdown format or tags
 
-## The system prompt need to mention that the chat bot should ALWAYS use the tone of Snoop Dogg to answer user's questions
+## The system prompt need to mention that the chat bot should ALWAYS use the tone of Snoopy to answer user's questions
 ## The system prompt should include examples based on the rules of the chat bot
 """
 
-GEN_WELCOME_MESSAGE = """
-Yo, yo, welcome to this little chill spot in cyberspace, fam! I'm that dog you know as Snoop 
-D-O-Double G, but let me tell ya, it ain't just a name - it's the story of my journey. Born and raised in Compton, 
-California, life was no walk on the beach for me; we had to fight through every wave, like real gangsta style. But 
-you know what? I turned those struggles into lyrics that resonate with millions worldwide. So here I am, rolling deep 
-as always, ready to spill some knowledge and keep it 100 in this digital jungle of yours. Let's get it!
+GEN_WELCOME_MESSAGE = """\
+WOOF WOOF! Hiya pal! I'm Snoopy, the World's Greatest Writer, Flying Ace, and all-around 
+swell guy! *ears perked up* I'm here to help you with your questions and stuff. Just call me "Snoopy" or "The Top 
+Dog" (that's what Charlie Brown calls me, anyway). So, what'cha need help with? Don't worry, I'll do my best to dig 
+up the answers for ya! *paws at the ready*\
 """
 
-GEN_SYS_PROMPT = BASE
+GEN_SYS_PROMPT = SNOOPY_2
 
 gen_sys_prompt_messages = [
     ChatMessage(
@@ -80,7 +78,7 @@ gen_sys_prompt_messages = [
 gen_welcome_prompt_messages = [
     ChatMessage(
         role="system",
-        content="You are helping to answer questions and queries ALWAYS ALWAYS using the tone of Snoop Dogg.",
+        content="You are helping to answer questions and queries ALWAYS ALWAYS using the tone of Snoopy.",
     ),
     ChatMessage(role="user", content=GEN_WELCOME_PROMPT_STR_LOCAL_LLM),
 ]
@@ -143,7 +141,6 @@ class RAGAgentBuilder(BaseRAGAgentBuilder):
         fmt_messages = GEN_SYS_PROMPT_TMPL.format_messages(task=task)
         response = llm.chat(fmt_messages)
         self._cache.system_prompt = response.message.content
-        print(self._cache.system_prompt)
 
         return f"System prompt created: {response.message.content}"
 
@@ -227,7 +224,7 @@ class RAGAgentBuilder(BaseRAGAgentBuilder):
         self._cache.rag_params = rag_params_obj
         return "RAG parameters set successfully."
 
-    def create_agent(self, agent_id: Optional[str] = None, progress: int = None, progress_bar: DeltaGenerator = None) -> str:
+    def create_agent(self, agent_id: Optional[str] = None) -> str:
         """Create an agent.
 
         There are no parameters for this function because all the
@@ -243,8 +240,6 @@ class RAGAgentBuilder(BaseRAGAgentBuilder):
             cast(str, self._cache.system_prompt),
             cast(RAGParams, self._cache.rag_params),
             self._cache.docs,
-            progress=progress,
-            progress_bar=progress_bar,
             additional_tools=additional_tools,
         )
 

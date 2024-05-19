@@ -14,7 +14,7 @@ class VectorStore:
         client = weaviate.Client("http://localhost:8080")
 
         if client.schema.exists("Agent"):
-            client.schema.delete_class("Agent")
+          client.schema.delete_class("Agent")
 
         vector_store = WeaviateVectorStore(
             weaviate_client=client, index_name="Agent"
